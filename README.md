@@ -1,9 +1,9 @@
 
-<p align="center"><img src="images/hasktorch-logo.png" /></p>
+<p align="center"><img height= src="images/hasktorch-logo.png" /></p>
 
 --------------------------------------------------------------------------------
 <br/>
-<p align="center"><img src="images/johnny5.png" /></p>
+<p align="center"><img src="images/johnny5.png" height="400px" /></p>
 
 This is a set of tutorial heavelly based on [pytorch-tutorial](https://github.com/yunjey/pytorch-tutorial) by [@yunjey](https://github.com/yunjey).
 The difference is that it's using [Hasktorch](http://www.hasktorch.org/) and should be a good entry point to learning how to use Hasktorch.
