@@ -1,5 +1,5 @@
 packages:
-    tutorials/01-basics/*.cabal
+    tutorials/01-basics/basics-hasktorch.cabal
 
 write-ghc-environment-files: always
 tests: true

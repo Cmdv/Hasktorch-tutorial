@@ -15,7 +15,7 @@
 let
 
   src = haskell-nix.haskellLib.cleanGit {
-      name = "Hasktorch-tutorial";
+      name = "hasktorch-tutorial";
       src = ../.;
   };
 

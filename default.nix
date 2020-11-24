@@ -34,14 +34,14 @@ let
   self = {
     inherit haskellPackages;
 
-    inherit (haskellPackages.hasktorch-tutorial.identifier) version;
+    inherit (haskellPackages.basics-hasktorch.identifier) version;
 
     # Grab library components of this package.
     inherit (libs);
 
     # Grab executable components of this package.
     inherit (exes)
-      hasktorch-tutorial
+      basics-hasktorch
       ;
 
     # `tests` are the test suites which have been built.
