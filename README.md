@@ -1,5 +1,5 @@
 
-<p align="center"><img width="40%" src="logo/hasktorch_logo.svg" /></p>
+<p align="center"><img src="logo/hasktorch-logo.png" /></p>
 
 --------------------------------------------------------------------------------
 <br/>
