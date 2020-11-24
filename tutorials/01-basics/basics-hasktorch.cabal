@@ -79,7 +79,7 @@ executable 03-logistic-regression
   hs-source-dirs:      03-logistic-regression
   main-is:             Main.hs
 
-executable 03-feedforward-neural-network
+executable 04-feedforward-neural-network
   import:              config
-  hs-source-dirs:      03-feedforward-neural-network
+  hs-source-dirs:      04-feedforward-neural-network
   main-is:             Main.hs
