@@ -14,11 +14,11 @@ The difference is that it's using [Hasktorch](http://www.hasktorch.org/) and sho
 ## Table of Contents
 
 #### 1. Basics
-* [HaskTorch Basics](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/01-hasktorch-basics/Main.hs)
+* [HaskTorch Basics](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/01-hasktorch-basics/Main.hs)<br/>
   `> cabal run exe:01-hasktorch-basics`
-* [Linear Regression](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/02-linear-regression/Main.hs)
+* [Linear Regression](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/02-linear-regression/Main.hs)<br/>
   `> cabal run exe:02-linear-regression`
-* [Logistic Regression](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/03-logistic-regression/Main.hs)
+* [Logistic Regression](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/03-logistic-regression/Main.hs)<br/>
   `> cabal run exe:03-logistic-regression`
-* [Feedforward Neural Network](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/04-feedforward-neural-network/Main.hs)
+* [Feedforward Neural Network](https://github.com/Cmdv/Hasktorch-tutorial/blob/master/tutorials/01-basics/04-feedforward-neural-network/Main.hs)<br/>
   `> cabal run exe:04-feedforward-neural-networt`
