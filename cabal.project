@@ -1,0 +1,26 @@
+packages:
+    tutorials/01-basics/*.cabal
+
+write-ghc-environment-files: always
+tests: true
+
+source-repository-package
+    type: git
+    location: https://github.com/hasktorch/hasktorch
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
+    subdir: libtorch-ffi-helper
+
+source-repository-package
+    type: git
+    location: https://github.com/hasktorch/hasktorch
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
+    subdir: libtorch-ffi
+
+source-repository-package
+    type: git
+    location: https://github.com/hasktorch/hasktorch
+    tag: b021f104611a2c8436654fa2e1d1d147a1c8d774
+    --sha256: 0zimg3mf5dppyqqd5l9ghcgl0yxyd26f4l79dkjdak7nfkhdzn00
+    subdir: hasktorch
