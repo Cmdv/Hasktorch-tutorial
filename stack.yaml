@@ -1,6 +1,6 @@
 resolver: lts-15.5
 
-compiler: ghc-8.8.4
+compiler: ghc-8.10.2
 
 packages:
 - .
@@ -16,4 +16,3 @@ extra-deps:
 
 nix:
   shell-file: nix/stack-shell.nix
-
