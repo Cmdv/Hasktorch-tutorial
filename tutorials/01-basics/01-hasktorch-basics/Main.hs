@@ -10,13 +10,13 @@ import Torch (grad)
                          Table of Contents
  ==================================================================
 
- 1. Basic autograd example 1               (Line 25 to 39)
- 2. Basic autograd example 2               (Line 46 to 83)
- 3. Loading data from numpy                (Line 90 to 97)
- 4. Input pipline                          (Line 104 to 129)
- 5. Input pipline for custom dataset       (Line 136 to 156)
- 6. Pretrained model                       (Line 163 to 176)
- 7. Save and load model                    (Line 183 to 189)
+ 1. Basic autograd example 1               (Line 28  to 40)
+ 2. Basic autograd example 2               (Line 49  to __)
+ 3. Loading data from numpy                (Line __  to __)
+ 4. Input pipline                          (Line __  to __)
+ 5. Input pipline for custom dataset       (Line __  to __)
+ 6. Pretrained model                       (Line __  to __)
+ 7. Save and load model                    (Line __  to __)
 
 
  ==================================================================
