@@ -1,0 +1,85 @@
+cabal-version:       2.2
+name:                basics-hasktorch
+version:             0.0.0.0
+synopsis:            See README for more info
+description:         See README for more info
+license:             MIT
+license-file:        LICENSE
+author:              The Hasktorch Team
+maintainer:          hasktorch@gmail.com
+copyright:           2020 The Hasktorch Team
+category:            Tensors, Machine Learning, AI
+build-type:          Simple
+extra-doc-files:     README.md
+                   , CHANGELOG.md
+tested-with:         GHC == 8.10.2
+
+common config
+  default-language:    Haskell2010
+  default-extensions:  DataKinds
+                     , RankNTypes
+                     , NoStarIsType
+                     , TypeApplications
+                     , TypeFamilies
+                     , TypeOperators
+                     , MultiParamTypeClasses
+                     , UndecidableSuperClasses
+                     , FlexibleInstances
+                     , UndecidableInstances
+                     , FlexibleContexts
+                     , ScopedTypeVariables
+                     , AllowAmbiguousTypes
+                     , PartialTypeSignatures
+                     , ConstraintKinds
+                     , PolyKinds
+                     , GADTs
+                     , DeriveGeneric
+                     , StandaloneDeriving
+                     , RecordWildCards
+                     , OverloadedStrings
+                     , DeriveAnyClass
+                    --  , OverloadedLists
+  ghc-options:         -Wno-partial-type-signatures
+                       -fplugin GHC.TypeLits.Normalise
+                       -fplugin GHC.TypeLits.KnownNat.Solver
+                       -fplugin GHC.TypeLits.Extra.Solver
+                       -fconstraint-solver-iterations=0
+                       -rtsopts
+  build-depends:       base >= 4.7 && < 5
+                     , libtorch-ffi
+                     , hasktorch >= 0.2 && < 0.3
+                     , ghc-typelits-extra
+                     , ghc-typelits-knownnat
+                     , ghc-typelits-natnormalise
+                     , random
+                     , normaldistribution
+                     , lens
+                     , generic-lens
+                     , containers
+                     , pipes
+                     , pipes-group
+                     , pipes-concurrency
+                     , foldl
+                     , transformers
+                     , hvega
+                     , text
+
+executable 01-hasktorch-basics
+  import:              config
+  hs-source-dirs:      01-hasktorch-basics
+  main-is:             Main.hs
+
+executable 02-linear-regression
+  import:              config
+  hs-source-dirs:      02-linear-regression
+  main-is:             Main.hs
+
+executable 03-logistic-regression
+  import:              config
+  hs-source-dirs:      03-logistic-regression
+  main-is:             Main.hs
+
+executable 03-feedforward-neural-network
+  import:              config
+  hs-source-dirs:      03-feedforward-neural-network
+  main-is:             Main.hs
