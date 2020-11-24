@@ -1,16 +1,19 @@
 module Main where
 
 import Torch.Autograd (makeIndependent)
-import Torch.Tensor (TensorLike(..))
+import Torch.Tensor (TensorLike(..), shape)
 import Torch (IndependentTensor(..))
 import Torch (grad)
+import Torch.Random (mkGenerator, randn')
+import Torch.Device (Device(..), DeviceType(..))
+import Torch.NN (Linear(..), LinearSpec(..), sample)
 
 {-
  ==================================================================
                          Table of Contents
  ==================================================================
 
- 1. Basic autograd example 1               (Line 28  to 40)
+ 1. Basic autograd example 1               (Line 31  to 47)
  2. Basic autograd example 2               (Line 49  to __)
  3. Loading data from numpy                (Line __  to __)
  4. Input pipline                          (Line __  to __)
@@ -32,12 +35,16 @@ basicAutograd1 = do
   b <- makeIndependent $ asTensor (3.0 :: Float)
   let y = toDependent w * toDependent x + toDependent b
       gradients = grad y [x, w, b]
-  putStrLn $ show  x        -- IndependentTensor {toDependent = Tensor Float []  1.0000   }
-  putStrLn $ show  w        -- IndependentTensor {toDependent = Tensor Float []  2.0000   }
-  putStrLn $ show  b        -- IndependentTensor {toDependent = Tensor Float []  3.0000   }
-  putStrLn $ show gradients -- [Tensor Float []  2.0000   ,Tensor Float []  1.0000   ,Tensor Float []  1.0000   ]
-  putStrLn $ show y         -- Tensor Float []  5.0000
-  return ()
+  putStrLn $ "IndependentTensor: " <> show x
+  -- IndependentTensor {toDependent = Tensor Float []  1.0000   }
+  putStrLn $ "IndependentTensor: " <> show w
+  -- IndependentTensor {toDependent = Tensor Float []  2.0000   }
+  putStrLn $ "IndependentTensor: " <> show b
+  -- IndependentTensor {toDependent = Tensor Float []  3.0000   }
+  putStrLn $ "Gradients: " <> show gradients
+  -- [Tensor Float []  2.0000   ,Tensor Float []  1.0000   ,Tensor Float []  1.0000   ]
+  putStrLn $ "Calculation: " <> show y
+  -- Tensor Float []  5.0000
 
 {-
  ==================================================================
@@ -47,8 +54,20 @@ basicAutograd1 = do
 
 
 basicAutograd2 :: IO ()
-basicAutograd2 = undefined
+basicAutograd2 = do
+  --  Create random tensors of the shape (10, 3) and (10, 2)
+  generator <- mkGenerator (Device CPU 0) 0
+  let (x, next) = randn' [10, 3] generator
+      (y, _)    = randn' [10, 2] next
+  putStrLn $ "Random (10, 3): " <> show x
+  putStrLn $ "Random (10, 2): " <> show y
 
+  -- Build a fully connected layer
+  linear <- sample $ LinearSpec { in_features = 3, out_features = 2 }
+  putStrLn $ "Weight: " <> show (weight linear)
+  putStrLn $ "Bias: " <> show (bias linear)
+
+  -- putStrLn $ take 4 (asValue t3)
 
 -- # Create tensors of shape (10, 3) and (10, 2).
 -- x = torch.randn(10, 3)
@@ -93,4 +112,5 @@ basicAutograd2 = undefined
 
 main :: IO ()
 main = do
-  basicAutograd1
+  -- basicAutograd1
+  basicAutograd2
