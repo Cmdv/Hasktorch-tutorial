@@ -3,15 +3,19 @@
 module Main where
 
 import Torch.Autograd (makeIndependent)
-import Torch.Tensor (TensorLike(..))
 import Torch (IndependentTensor(..), grad)
 import Torch.Random (mkGenerator, randn')
 import Torch.Device (Device(..), DeviceType(..))
 import Torch.NN (Linear(..), LinearSpec(..), HasForward(..), sample)
-import Torch.Functional (mseLoss)
+import qualified Torch.Functional as TF
 import Torch.TensorFactories (zeros')
-import Torch.Tensor (select, toDouble, shape, dtype, (!), toInt, size, dim, numel, slice)
-import Torch.Functional (view)
+import Torch.Tensor ( TensorLike(..)
+                    , select , toDouble
+                    , shape , dtype
+                    , (!) , toInt
+                    , size , dim
+                    , numel, slice)
+import Torch.Functional.Internal (vdot)
 
 {-
  ==================================================================
@@ -32,61 +36,122 @@ import Torch.Functional (view)
  ==================================================================
 -}
 
-oneTensors :: IO ()
-oneTensors = do
-  let tensor1 = asTensor (1 :: Int)
-      tensor2 = asTensor ([1, 2, 3, 4] :: [Int])
-      tensor3 = asTensor ([[1, 2, 3, 4], [5,6,7,8]] :: [[Int]])
-      tensor4 = asTensor ([1.0, 2.0, 3.0] :: [Float])
-      tensor5 = asTensor ([[[0,1,2],[3,4,5]],[[6,7,8],[9,10,11]]] :: [[[Int]]])
-  printTensor "1 - Tensor1: " tensor1
+tensorsBasic :: IO ()
+tensorsBasic = do
+  let tensor1  = asTensor (1 :: Int)
+      tensor2  = asTensor ([1, 2, 3, 4] :: [Int])
+      tensor3  = asTensor ([[1, 2, 3, 4], [5,6,7,8]] :: [[Int]])
+      tensor4  = asTensor ([1.0, 2.0, 3.0] :: [Float])
+  printTensor "1-Tensor1: " tensor1
   -- Tensor Int64 []  1
-  printTensor "1 - Tensor2: " tensor2
+  printTensor "1-Tensor2: " tensor2
   -- Tensor Int64 [4] [ 1,  2,  3,  4]
-  printTensor "1 - select 0 0: " $ select 0 0 tensor2
+  printTensor "1-select 0 0: " $ select 0 0 tensor2
   -- Tensor Int64 [] 1
-  printTensor "1 - select 0 1: " $ select 0 1 tensor3
+  printTensor "1-select 0 1: " $ select 0 1 tensor3
   -- Tensor Int64 [4] [ 5,  6,  7,  8]
-  printTensor "1 - select 1 2: " $ select 1 2 tensor3
+  printTensor "1-select 1 2: " $ select 1 2 tensor3
   -- Tensor Int64 [2] [ 3,  7]
-  printTensor "1 - size: " $ size 0 tensor2
+  printTensor "1-size: " $ size 0 tensor2
   -- 4
-  printTensor "1 - dim: " $ dim tensor2
+  printTensor "1-dim: " $ dim tensor2
   -- 1
-  printTensor "1 - dim: " $ dim tensor5
-  -- 3
-  printTensor "1 - shape: " $ shape tensor2
+  printTensor "1-shape: " $ shape tensor2
   -- [4]
-  printTensor "1 - shape: " $ shape tensor3
+  printTensor "1-shape: " $ shape tensor3
   -- [2, 4]
-  printTensor "1 - numel: " $ numel tensor3
+  printTensor "1-numel: " $ numel tensor2
   -- 8
-  printTensor "1 - toDouble: " $ toDouble $ select 0 0 tensor2
+  printTensor "1-toDouble: " $ toDouble $ select 0 0 tensor2
   -- 1.0
-  printTensor "1 - toInt: " $ toInt $ select 0 2 tensor4
+  printTensor "1-toInt: " $ toInt $ select 0 2 tensor4
   -- 3
-  printTensor "1 - asValue Int: " (asValue tensor1 :: Int)
+  printTensor "1-asValue Int: " (asValue tensor1 :: Int)
   -- 1
-  printTensor "1 - asValue [Int]: " (asValue tensor2 :: [Int])
+  printTensor "1-asValue [Int]: " (asValue tensor2 :: [Int])
   -- [1,2,3,4]
-  printTensor "1 - dtype: " $ dtype tensor1
+  printTensor "1-dtype: " $ dtype tensor1
   -- Int64
-  printTensor "1 - dtype: " $ dtype tensor4
+  printTensor "1-dtype: " $ dtype tensor4
   -- Float
-  printTensor "1 - view: " $ view [4,1] tensor2
+  printTensor "1-view: " $ TF.view [4,1] tensor2
   -- change the shape of the tensor
   -- Tensor Int64 [4,1] [[ 1], [ 2], [ 3], [ 4]]
-  printTensor "1 - view -1: " $ view [-1,1] tensor2
+  printTensor "1-view -1: " $ TF.view [-1,1] tensor2
   -- (-1) will infer the number of rows in the new tensor for us
   -- Tensor Int64 [4,1] [[ 1], [ 2], [ 3], [ 4]]
-  printTensor "1 - slice 1D: " $ slice 0 1 3 1 tensor2
+  printTensor "1-slice 1D: " $ slice 0 1 3 1 tensor2
   -- Tensor Int64 [2] [ 2,  3]
-  printTensor "1 - slice 2D: " $ slice 1 1 3 1 tensor3
+  printTensor "1-add: " $ tensor2 + tensor2
+  -- Tensor Int64 [4] [ 2,  4,  6,  8]
+  printTensor "1-multiplication: " $ tensor2 * tensor2
+  -- Tensor Int64 [4] [ 1,  4,  9,  16]
+  printTensor "1-multiplication with scaler: " $ tensor2 * 2
+  -- Tensor Int64 [4] [ 2,  4,  6,  8]
+  printTensor "1-dot product: " $ TF.dot tensor2 tensor2
+  -- Tensor Int64 []  30
+  printTensor "1-mean: " $ TF.mean tensor4
+  -- Tensor Float []  2.0000
+  printTensor "1-max: " $ TF.max tensor2
+
+
+{-
+ ==================================================================
+                     1. Two Dimensional Tensors
+ ==================================================================
+-}
+
+
+tensorsN :: IO ()
+tensorsN = do
+  let tensor2D = asTensor ([[1, 2, 3, 4], [5,6,7,8]] :: [[Int]])
+      tensor3D = asTensor ([[[0,1,2],[3,4,5]],[[6,7,8],[9,10,11]]] :: [[[Int]]])
+  printTensor "1-select 0 1: " $ select 0 1 tensor2D
+  -- Tensor Int64 [4] [ 5,  6,  7,  8]
+  printTensor "1-select 1 2: " $ select 1 2 tensor2D
+  -- Tensor Int64 [2] [ 3,  7]
+  printTensor "1-size: " $ size 0 tensor2D
+  -- 4
+  printTensor "1-dim: " $ dim tensor2D
+  -- 1
+  printTensor "1-dim: " $ dim tensor3D
+  -- 3
+  printTensor "1-shape: " $ shape tensor2D
+  -- [2, 4]
+  printTensor "1-numel: " $ numel tensor2D
+  -- 8
+  printTensor "1-view: " $ TF.view [8,1] tensor2D
+  -- change the shape of the tensor
+  -- Tensor Int64 [8,1] [[ 1], [ 2], [ 3], [ 4], [ 5], [ 6], [ 7], [ 8]]
+  printTensor "1-view -1: " $ TF.view [-1,1] tensor2D
+  -- (-1) will infer the number of rows in the new tensor for us
+  -- Tensor Int64 [8,1] [[ 1], [ 2], [ 3], [ 4], [ 5], [ 6], [ 7], [ 8]]
+  printTensor "1-slice 2D: " $ slice 1 1 3 1 tensor2D
   -- Tensor Int64 [2,2] [[ 2,  3], [ 6,  7]]
-  let r = tensor5 ! (1,0)
+  let r = tensor3D ! (1,0)
   -- (1,0) is ambiguous type variable ExtendedDefaultRules is used
-  printTensor "1 - tensor4 ! (1,0): " r
+  printTensor "1-tensor4 ! (1,0): " r
   -- Tensor Int64 [3] [ 6,  7,  8]
+  printTensor "1-add: " $ tensor2D + tensor2D
+  -- Tensor Int64 [4] [ 2,  4,  6,  8]
+  printTensor "1-multiplication: " $ tensor2D * tensor2D
+  -- Tensor Int64 [4] [ 1,  4,  9,  16]
+  printTensor "1-multiplication with scaler: " $ tensor2D * 2
+  -- Tensor Int64 [4] [ 2,  4,  6,  8]
+  -- printTensor "1-dot product: " $ vdot tensor2D tensor2D
+  -- Tensor Int64 []  30
+  -- printTensor "1-mean: " $ TF.mean tensor2D
+  -- Tensor Float []  2.0000
+  -- printTensor "1-max: " $ TF.max tensor2D
+
+
+  -- add 2 tensors
+  -- vector multiplication with scaler 2 * [1,2] == [2,4]
+  -- (Hadamard) product of 2 tensors [2,4] * [2,4] = [4,16]
+  -- dot product [2,4] [2,4] == (2 * 2) + (4 * 4) = 20
+  -- mean [1, -1, 1, -1] == 1/4 (1-1 + 1-1) == 0
+  -- max [1,2,-1,5] == 5
+  -- linespace
 
 
 
@@ -139,7 +204,7 @@ threeBasicAutograd = do
   -- forward pass
   let prediction = forward linear x
   -- compute loss
-      loss = mseLoss prediction y
+      loss = TF.mseLoss prediction y
 
   printTensor "3 - Prediction: " prediction
   printTensor "3 - Prediction: " prediction
@@ -192,6 +257,7 @@ printTensor s t = do
 
 main :: IO ()
 main = do
-  oneTensors
-  twoBasicAutograd
-  threeBasicAutograd
+  -- tensorsBasic
+  tensorsN
+  --twoBasicAutograd
+  --threeBasicAutograd
