@@ -85,13 +85,11 @@ linearRegression = do
   model <- sample $ LinearSpec { in_features = inputSize, out_features = outputSize }
 
   -- our loop
-  trainedPrediction <- foldLoop model numEpochs $ \modelState i -> do
+  trainedModel <- foldLoop model numEpochs $ \modelState i -> do
         -- combine out inputs to our modelState
-    let expectedOutputs = squeezeAll $ linear modelState inputs
-        -- change the shape of the vector from [n,1] -> [n]
-        targets' = view [-1] targets
+    let expectedOutputs = linear modelState inputs
         -- do a mean squared errors on
-        loss = mseLoss targets' expectedOutputs
+        loss = mseLoss targets expectedOutputs
     -- every 100 iteratiosn print out the loss
     when (i `mod` 100 == 0) $ do
       putStrLn $ "Loss': " ++ show loss
@@ -99,8 +97,9 @@ linearRegression = do
     (newModel, _) <- runStep modelState optimizer loss learningRate
     pure newModel
   -- print out the weight and bias
-  putStrLn $ "Weight:\n" ++ show (toDependent $ weight trainedPrediction)
-  putStrLn $ "Bias:\n" ++ show (toDependent $ bias trainedPrediction)
+  putStrLn $ "Weight:\n" ++ show (toDependent $ weight trainedModel)
+  putStrLn $ "Bias:\n" ++ show (toDependent $ bias trainedModel)
+  putStrLn $ show $ linear trainedModel inputs
   pure ()
   where
     -- Parameters
