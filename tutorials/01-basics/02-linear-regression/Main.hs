@@ -2,17 +2,25 @@ module Main where
 
 import Control.Monad (when)
 import Torch.Optim (GD(..), runStep, foldLoop)
-import Torch.Tensor (asTensor)
+import Torch.Tensor (Tensor, asTensor, asValue)
 import Torch.NN (linear, sample, LinearSpec(..))
-import Torch.Functional (mseLoss)
+import Torch.Functional (mseLoss, view)
+import qualified Graphics.Vega.VegaLite as V
+import GHC.Float (float2Double)
 
 {-
  ==================================================================
                 1. Linear Regression 1D
  ==================================================================
+
+-- We are trying to solve a problem of finding a house value given it's size
+-- in m2.
+-- We have an existing data set of size of houses and their values.
+-- We will use the training sets to teach our model.
+
 -}
 
--- the training sets for x and y axis
+-- house size training set
 xTrain :: [[Float]]
 xTrain =
   [ [1700.0], [2760.0], [2090.0], [3190.0], [1694.0], [1573.0]
@@ -20,6 +28,7 @@ xTrain =
   , [3465.0], [1650.0], [2904.0], [1300.0]
   ]
 
+-- house value training set
 yTrain :: [[Float]]
 yTrain =
   [ [33000.0], [44000.0], [55000.0], [67100.0], [69300.0], [41680.0]
@@ -42,23 +51,62 @@ linearRegression = do
         -- do a mean squared errors on
         loss = mseLoss targets expectedOutputs
     -- every 50 iteratiosn print out the loss
-    when (i `mod` 50 == 0) $ do
-      putStrLn $ "Loss': " ++ show loss
+    when (i `mod` 10 == 0) $ do
+      putStrLn $ "Epoch Num:" ++ show i ++ " Loss': " ++ show loss
     -- run our gradient decent optimizer and backwards loss
     (newModel, _) <- runStep modelState optimizer loss learningRate
+    -- return the current state of the training model to be picked up by next epoch itteration.
     pure newModel
   -- show use of trainedModel working against our training set. The result can be used to draw the linear regression line
   -- in a chart.
-  putStrLn $ "\n Values to draw regression line:\n " ++ show (linear trainedModel inputs)
+  -- putStrLn $ "\n Values to draw regression line:\n " ++ show (linear trainedModel inputs)
+  -- display chart
+  putStrLn $ show trainedModel
+  let trainedData = linear trainedModel inputs
+      trainedList = asValue (view [-1] trainedData) :: [Float]
+  plot "linearReg.html" trainedList
   pure ()
   where
     -- Parameters
     inputSize = 1
     outputSize = 1
-    numEpochs = 4000
-    learningRate = 1e-10
+    numEpochs = 40
+    learningRate = 1e-8
     optimizer = GD
 
+plot :: FilePath -> [Float] -> IO ()
+plot file trainedY = do
+  let w = V.width 700
+      h = V.height 600
+
+      manualData = V.dataFromColumns []
+                 . V.dataColumn "House size" (V.Numbers xData)
+                 . V.dataColumn "House Price" (V.Numbers yData)
+                 . V.dataColumn "Estimated Price" (V.Numbers $ float2Double <$> trainedY)
+                 $ []
+
+      xData = map float2Double $ concat xTrain
+      yData = map float2Double $concat yTrain
+      encDots = V.encoding
+          . V.position V.X [V.PName "House size", V.PmType V.Quantitative]
+          . V.position V.Y [V.PName "House Price", V.PmType V.Quantitative]
+      enc = V.encoding
+          . V.position V.X [V.PName "House size", V.PmType V.Quantitative]
+          . V.position V.Y [V.PName "Estimated Price", V.PmType V.Quantitative]
+
+  V.toHtmlFile file $ V.toVegaLite
+   [ manualData
+   , V.layer [ V.asSpec [ encDots []
+                        , V.mark V.Point [V.MSize 5, V.MStroke "black"]
+                        ]
+             , V.asSpec [ enc []
+                        , V.mark V.Line [ V.MStroke "red"
+                                        , V.MStrokeWidth 3]
+                        ]
+             ]
+   , w
+   , h
+   ]
 
 main :: IO ()
 main = do

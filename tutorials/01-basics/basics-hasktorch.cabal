@@ -59,10 +59,12 @@ common config
                      , pipes
                      , pipes-group
                      , pipes-concurrency
+                     , pipes-safe
                      , foldl
-                     , transformers
+                     , mtl
                      , hvega
                      , text
+                     , vector
 
 executable 01-hasktorch-basics
   import:              config
