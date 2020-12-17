@@ -46,23 +46,24 @@ common config
                        -fconstraint-solver-iterations=0
                        -rtsopts
   build-depends:       base >= 4.7 && < 5
-                     , libtorch-ffi
-                     , hasktorch >= 0.2 && < 0.3
+                     , bytestring
+                     , containers
+                     , foldl
+                     , generic-lens
                      , ghc-typelits-extra
                      , ghc-typelits-knownnat
                      , ghc-typelits-natnormalise
-                     , random
-                     , normaldistribution
-                     , lens
-                     , generic-lens
-                     , containers
-                     , pipes
-                     , pipes-group
-                     , pipes-concurrency
-                     , pipes-safe
-                     , foldl
-                     , mtl
+                     , hasktorch >= 0.2 && < 0.3
                      , hvega
+                     , lens
+                     , libtorch-ffi
+                     , mtl
+                     , normaldistribution
+                     , pipes
+                     , pipes-concurrency
+                     , pipes-group
+                     , pipes-safe
+                     , random
                      , text
                      , vector
 
