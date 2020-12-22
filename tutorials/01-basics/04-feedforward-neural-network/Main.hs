@@ -5,18 +5,33 @@
 
 module Main where
 
-import           Control.Monad (when)
 import           GHC.Generics
 import           Prelude hiding (exp)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import           Control.Monad ((<=<), forM_)
+import           Control.Monad ((<=<), forM_, when)
 import           Control.Monad.Cont (ContT(..))
 import qualified Pipes.Prelude as P
 import           Pipes
 import           Torch
 import qualified Torch.Vision as V
 import qualified Torch.Typed.Vision as TV
+
+{-
+  This is a representation of our neural network
+  It has an input layer, 2 hidden layers and an output
+
+  +---------+    +---------+    +---------+    +---------+
+  |  Input  +--> | Hidden  +--> | Hidden  +--> | Output  |
+  |         |    | layer1  |    | layert2 |    |         |
+  +---------+    +---------+    +---------+    +---------+
+-}
+
+data MLP = MLP {
+    hiddenL0 :: Linear,
+    hiddenL1 :: Linear,
+    outputL  :: Linear
+    } deriving (Generic, Show)
 
 data MLPSpec = MLPSpec {
     inputFeatures :: Int,
@@ -25,30 +40,32 @@ data MLPSpec = MLPSpec {
     outputFeatures :: Int
     } deriving (Show, Eq)
 
-data MLP = MLP {
-    l0 :: Linear,
-    l1 :: Linear,
-    l2 :: Linear
-    } deriving (Generic, Show)
-
 instance Parameterized MLP
+
+-- we want to be able to create some random MLPSpecs
 instance Randomizable MLPSpec MLP where
     sample MLPSpec {..} = MLP
         <$> sample (LinearSpec inputFeatures hiddenFeatures0)
         <*> sample (LinearSpec hiddenFeatures0 hiddenFeatures1)
         <*> sample (LinearSpec hiddenFeatures1 outputFeatures)
 
+-- here is the flow the input tensor takes through each hidden layer
+-- and output layer.
+-- Then it is all converted to a 1 dementional Tensor using a logSoftmax
 mlp :: MLP -> Tensor -> Tensor
-mlp MLP{..} =
+mlp MLP{..} input =
     logSoftmax (Dim 1)
-    . linear l2
+    . linear outputL
     . relu
-    . linear l1
+    . linear hiddenL1
     . relu
-    . linear l0
+    . linear hiddenL0 $ input
 
+-- The training loop
 trainLoop :: Optimizer a => MLP -> a -> ListT IO (Tensor, Tensor) -> IO  MLP
-trainLoop model optimizer = P.foldM step (pure model) pure . enumerateData
+trainLoop model optimizer =
+  --
+  P.foldM step (pure model) pure . enumerateData
   where
     step :: MLP -> ((Tensor, Tensor), Int) -> IO MLP
     step curModel ((input, label), iter) = do
@@ -58,21 +75,41 @@ trainLoop model optimizer = P.foldM step (pure model) pure . enumerateData
       (newParam, _) <- runStep curModel optimizer loss 1e-3
       pure newParam
 
+-- The main setup and loop
 main :: IO ()
 main = do
-    (trainData, testData) <- initMnistFiles "data"
-    let trainMnist = V.MNIST { batchSize = 32 , mnistData = trainData}
-        testMnist = V.MNIST { batchSize = 1 , mnistData = testData}
-        spec = MLPSpec 784 64 32 10
-        optimizer = GD
-    init <- sample spec
-    model <- foldLoop init 5 $ \model _ ->
-      runContT (streamFromMap (datasetOpts 2) trainMnist) $ trainLoop model optimizer . fst
+  -- make sure to run data/dowload_data.sh in route of repo
+  -- this part will run agains the files generated and convert them
+  -- into MnistData, see initMnistFiles in hellper functions bellow.
+  (trainData, testData) <- initMnistFiles "data"
 
-    -- show test images + labels
-    forM_ [0..10]  $ displayImages model <=< getItem testMnist
+  -- setup MNIST which we can give a batch size attribute, which become useful
+  -- when dealing with very large data sets.
+  let trainMnist = V.MNIST { batchSize = 32 , mnistData = trainData}
+      testMnist = V.MNIST { batchSize = 1 , mnistData = testData}
+      -- This is the shape of our neural network
+      -- (28 x 28) 784 inputs,
+      -- 64 neurons in the first hidden layer
+      -- 32 nearons in the second layer
+      -- 10 output neurons for the numbers [0..9]
+      spec = MLPSpec 784 64 32 10
+      -- use th Gradient decent optimizer
+      optimizer = GD
+  -- setup a random sample for our neural network, to get out initial
+  -- biases and weights
+  init <- sample spec
 
-    putStrLn "Done"
+  -- here is out initial loop which we run 5 times
+  trainedModel <- foldLoop init 5 $ \model _ ->
+    -- because that learning data is in batches we want to run thing using the continuation monad
+    -- we streamFrom map our training data set and pass the result of that to trainloop
+    -- runContT will return :: IO MLP
+    runContT (streamFromMap (datasetOpts 2) trainMnist) (trainLoop model optimizer . fst)
+
+  -- show test images + labels
+  forM_ [0..10]  $ displayImages trainedModel <=< getItem testMnist
+
+  putStrLn "Done"
 
 
 
